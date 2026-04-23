@@ -6,9 +6,12 @@ public class BookMapper {
         return new BookSummaryDTO(
                 book.getId(),
                 book.getTitle(),
+                book.getAuthorName(),      // Nytt!
+                book.getCategoryName(),    // Nytt!
                 book.getAvailableCopies()
         );
     }
+
 
     public static BookDetailDTO toDetailDTO(Book book) {
         return new BookDetailDTO(

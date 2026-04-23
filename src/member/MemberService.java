@@ -15,7 +15,7 @@ public class MemberService {
     public List<MemberSummaryDTO> getAllMembers() throws SQLException {
         return repository.findAll()
                 .stream()
-                .map(m -> new MemberSummaryDTO(m.getId(), m.getName(), m.getEmail()))
+                .map(m -> new MemberSummaryDTO(m.getId(), m.getFullName(), m.getEmail()))
                 .collect(Collectors.toList());
     }
 
@@ -24,8 +24,8 @@ public class MemberService {
                 .orElseThrow(() -> new MemberNotFoundException(id));
     }
 
-    public void addMember(String name, String email, String phone) throws SQLException {
-        Member member = new Member(name, email, phone);
+    public void addMember(String firstName, String lastName, String email, String phone) throws SQLException {
+        Member member = new Member(firstName, lastName, email, phone);
         repository.save(member);
     }
 
@@ -33,5 +33,14 @@ public class MemberService {
         repository.findById(id)
                 .orElseThrow(() -> new MemberNotFoundException(id));
         repository.delete(id);
+    }
+
+    public void updateMember(int id, String firstName, String lastName, String email, String phone) throws SQLException, MemberNotFoundException {
+        Member member = getMemberById(id);
+        member.setFirstName(firstName);
+        member.setLastName(lastName);
+        member.setEmail(email);
+        member.setPhone(phone);
+        repository.update(member);
     }
 }

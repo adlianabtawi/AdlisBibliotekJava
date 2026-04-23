@@ -49,4 +49,17 @@ public class CategoryService {
         }
         categoryRepository.delete(id);
     }
+
+    public void addCategoryToBook(int bookId, int categoryId) throws SQLException {
+        if (!categoryRepository.exists(categoryId)) {
+            throw new CategoryNotFoundException(categoryId);
+        }
+        categoryRepository.addCategoryToBook(bookId, categoryId);
+    }
+    public void removeCategoryFromBook(int bookId, int categoryId) throws SQLException {
+        if (!categoryRepository.exists(categoryId)) {
+            throw new CategoryNotFoundException(categoryId);
+        }
+        categoryRepository.removeCategoryFromBook(bookId, categoryId);
+    }
 }

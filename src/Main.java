@@ -1,26 +1,26 @@
-import author.AuthorUI;
-import book.BookUI;
-import category.CategoryUI;
-import loan.LoanUI;
-import member.MemberUI;
+import author.AuthorController;
+import book.BookController;
+import category.CategoryController;
+import loan.LoanController;
+import member.MemberController;
 import java.util.Scanner;
 
 public class Main {
 
     private final Scanner scanner;
-    private final BookUI bookUI;
-    private final MemberUI memberUI;
-    private final LoanUI loanUI;
-    private final AuthorUI authorUI;
-    private final CategoryUI categoryUI;
+    private final BookController bookController;
+    private final MemberController memberController;
+    private final LoanController loanController;
+    private final AuthorController authorController;
+    private final CategoryController categoryController;
 
     public Main() {
         this.scanner = new Scanner(System.in);
-        this.bookUI = new BookUI(scanner);
-        this.memberUI = new MemberUI(scanner);
-        this.loanUI = new LoanUI(scanner);
-        this.authorUI = new AuthorUI(scanner);
-        this.categoryUI = new CategoryUI(scanner);
+        this.bookController = new BookController(scanner);
+        this.memberController = new MemberController(scanner);
+        this.loanController = new LoanController(scanner);
+        this.authorController = new AuthorController(scanner);
+        this.categoryController = new CategoryController(scanner);
     }
 
     public void show() {
@@ -38,11 +38,11 @@ public class Main {
             String input = scanner.nextLine();
 
             switch (input) {
-                case "1" -> bookUI.show();
-                case "2" -> memberUI.show();
-                case "3" -> loanUI.show();
-                case "4" -> authorUI.show();
-                case "5" -> categoryUI.show();
+                case "1" -> bookController.show();
+                case "2" -> memberController.show();
+                case "3" -> loanController.show();
+                case "4" -> authorController.show();
+                case "5" -> categoryController.show();
                 case "0" -> {
                     System.out.println("Avslutar...");
                     running = false;

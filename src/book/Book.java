@@ -8,6 +8,8 @@ public class Book {
     private int yearPublished;
     private int totalCopies;
     private int availableCopies;
+    private String authorName;
+    private String categoryName;
 
     // Konstruktor för mappning från databasen (id känt)
     public Book(int id, String title, String isbn, int yearPublished,
@@ -33,6 +35,8 @@ public class Book {
     public int getYearPublished()    { return yearPublished; }
     public int getTotalCopies()      { return totalCopies; }
     public int getAvailableCopies()  { return availableCopies; }
+    public String getAuthorName() { return authorName; }
+    public String getCategoryName() { return categoryName; }
 
     // Setters – bara fält som kan förändras
     public void setAvailableCopies(int availableCopies) {
@@ -41,6 +45,9 @@ public class Book {
     public void setTitle(String title)          { this.title = title; }
     public void setYearPublished(int year)      { this.yearPublished = year; }
     public void setTotalCopies(int total)       { this.totalCopies = total; }
+    public void setAuthorName(String authorName) { this.authorName = authorName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+
 
     @Override
     public String toString() {

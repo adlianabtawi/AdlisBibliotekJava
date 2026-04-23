@@ -4,12 +4,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 
-public class CategoryUI {
+public class CategoryController {
 
     private final Scanner scanner;
     private final CategoryService categoryService;
 
-    public CategoryUI(Scanner scanner) {
+    public CategoryController(Scanner scanner) {
         this.scanner = scanner;
         this.categoryService = new CategoryService();
     }
@@ -23,6 +23,7 @@ public class CategoryUI {
             System.out.println("3. Lägg till kategori");
             System.out.println("4. Uppdatera kategori");
             System.out.println("5. Ta bort kategori");
+            System.out.println("6. Lägg till bok i kategori");
             System.out.println("0. Tillbaka");
             System.out.print("Val: ");
 
@@ -34,6 +35,7 @@ public class CategoryUI {
                 case "3" -> addCategory();
                 case "4" -> updateCategory();
                 case "5" -> deleteCategory();
+                case "6" -> addBookToCategory();
                 case "0" -> running = false;
                 default  -> System.out.println("Ogiltigt val.");
             }
@@ -130,4 +132,35 @@ public class CategoryUI {
             System.out.println("Databasfel: " + e.getMessage());
         }
     }
+    private void addBookToCategory() {
+        try {
+            System.out.print("Ange bok-ID: ");
+            int bookId = Integer.parseInt(scanner.nextLine());
+
+            // Visa alla kategorier så bibliotekarie kan välja
+            List<CategoryDTO> categories = categoryService.getAllCategories();
+            if (categories.isEmpty()) {
+                System.out.println("Inga kategorier hittades.");
+                return;
+            }
+            System.out.println("\n--- Tillgängliga kategorier ---");
+            for (CategoryDTO c : categories) {
+                System.out.printf("ID: %d | %s%n", c.getId(), c.getName());
+            }
+
+            System.out.print("Ange kategori-ID: ");
+            int categoryId = Integer.parseInt(scanner.nextLine());
+
+            categoryService.addCategoryToBook(bookId, categoryId);
+            System.out.println("✅ Boken har lagts till i kategorin!");
+
+        } catch (NumberFormatException e) {
+            System.out.println("Ogiltigt ID.");
+        } catch (CategoryNotFoundException e) {
+            System.out.println(e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("Databasfel: " + e.getMessage());
+        }
+    }
+
 }

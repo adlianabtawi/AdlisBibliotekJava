@@ -59,4 +59,14 @@ public class LoanService {
         loanRepository.returnLoan(loanId);
         loanRepository.increaseAvailableCopies(bookId);
     }
+    public void extendLoan(int loanId, int extraDays) throws SQLException {
+        if (!loanRepository.loanExists(loanId)) {
+            throw new LoanNotFoundException(loanId);
+        }
+        if (extraDays <= 0) {
+            throw new IllegalArgumentException("Antal dagar måste vara minst 1.");
+        }
+        loanRepository.extendLoan(loanId, extraDays);
+    }
+
 }

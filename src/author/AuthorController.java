@@ -6,12 +6,12 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
-public class AuthorUI {
+public class AuthorController {
 
     private final Scanner scanner;
     private final AuthorService authorService;
 
-    public AuthorUI(Scanner scanner) {
+    public AuthorController(Scanner scanner) {
         this.scanner = scanner;
         this.authorService = new AuthorService();
     }

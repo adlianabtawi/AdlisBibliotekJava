@@ -116,4 +116,20 @@ public class CategoryRepository {
                 rs.getInt("book_count")
         );
     }
+    public void addCategoryToBook(int bookId, int categoryId) throws SQLException {
+        String sql = "INSERT INTO book_categories (book_id, category_id) VALUES (?, ?)";
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+            stmt.setInt(1, bookId);
+            stmt.setInt(2, categoryId);
+            stmt.executeUpdate();
+        }
+    }
+    public void removeCategoryFromBook(int bookId, int categoryId) throws SQLException {
+        String sql = "DELETE FROM book_categories WHERE book_id = ? AND category_id = ?";
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+            stmt.setInt(1, bookId);
+            stmt.setInt(2, categoryId);
+            stmt.executeUpdate();
+        }
+    }
 }

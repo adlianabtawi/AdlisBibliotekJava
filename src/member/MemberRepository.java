@@ -41,14 +41,27 @@ public class MemberRepository {
     }
 
     public void save(Member member) throws SQLException {
-        String sql = "INSERT INTO members (name, email, phone) VALUES (?, ?, ?)";
-
+        String sql = "INSERT INTO members (first_name, last_name, email, membership_date, membership_type, status) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, member.getName());
-            stmt.setString(2, member.getEmail());
-            stmt.setString(3, member.getPhone());
+            stmt.setString(1, member.getFirstName());
+            stmt.setString(2, member.getLastName());
+            stmt.setString(3, member.getEmail());
+            stmt.setDate(4, java.sql.Date.valueOf(java.time.LocalDate.now()));
+            stmt.setString(5, "standard");
+            stmt.setString(6, "active");
+            stmt.executeUpdate();
+        }
+    }
+    public void update(Member member) throws SQLException {
+        String sql = "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, member.getFirstName());
+            stmt.setString(2, member.getLastName());
+            stmt.setString(3, member.getEmail());
+            stmt.setString(4, member.getPhone());
+            stmt.setInt(5, member.getId());
             stmt.executeUpdate();
         }
     }
@@ -67,7 +80,8 @@ public class MemberRepository {
     private Member mapRow(ResultSet rs) throws SQLException {
         return new Member(
                 rs.getInt("id"),
-                rs.getString("name"),
+                rs.getString("first_name"),
+                rs.getString("last_name"),
                 rs.getString("email"),
                 rs.getString("phone")
         );

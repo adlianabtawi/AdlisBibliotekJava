@@ -10,11 +10,31 @@ public class BookRepository {
 
     public List<Book> findAll() throws SQLException {
         List<Book> books = new ArrayList<>();
-        String sql = "SELECT * FROM books";
+
+        String sql = """
+        SELECT 
+            books.id,
+            books.title,
+                books.isbn,             -- Lägg till!
+                books.year_published,   -- Lägg till!
+                books.total_copies,     -- Lägg till!
+            books.available_copies,
+            GROUP_CONCAT(DISTINCT CONCAT(authors.first_name, ' ', authors.last_name) 
+                SEPARATOR ', ') AS author_names,
+            GROUP_CONCAT(DISTINCT categories.name 
+                SEPARATOR ', ') AS category_names
+        FROM books
+        JOIN book_authors ON books.id = book_authors.book_id
+        JOIN authors ON book_authors.author_id = authors.id
+        LEFT JOIN book_categories ON books.id = book_categories.book_id
+        LEFT JOIN categories ON book_categories.category_id = categories.id
+                     GROUP BY books.id, books.title, books.isbn, books.year_published, books.total_copies, books.available_copies
+        """;
+
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 books.add(mapRow(rs));
@@ -22,6 +42,8 @@ public class BookRepository {
         }
         return books;
     }
+
+
 
     public Optional<Book> findById(int id) throws SQLException {
         String sql = "SELECT * FROM books WHERE id = ?";
@@ -100,7 +122,7 @@ public class BookRepository {
     }
 
     private Book mapRow(ResultSet rs) throws SQLException {
-        return new Book(
+        Book book = new Book(
                 rs.getInt("id"),
                 rs.getString("title"),
                 rs.getString("isbn"),
@@ -108,19 +130,35 @@ public class BookRepository {
                 rs.getInt("total_copies"),
                 rs.getInt("available_copies")
         );
+        book.setAuthorName(rs.getString("author_names"));     // ✅ Inte first_name/last_name!
+        book.setCategoryName(rs.getString("category_names")); // ✅
+        return book;
     }
+
+
 
     public List<Book> search(String title, String author, Integer categoryId, boolean onlyAvailable, String sortBy) throws SQLException {
         List<Book> books = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder("""
-            SELECT DISTINCT b.*
-            FROM books b
-            LEFT JOIN book_authors ba ON b.id = ba.book_id
-            LEFT JOIN authors a ON ba.author_id = a.id
-            LEFT JOIN book_categories bc ON b.id = bc.book_id
-            WHERE 1=1
-            """);
+        SELECT 
+            b.id,
+            b.title,
+            b.isbn,
+            b.year_published,
+            b.total_copies,
+            b.available_copies,
+            GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) 
+                SEPARATOR ', ') AS author_names,
+            GROUP_CONCAT(DISTINCT c.name 
+                SEPARATOR ', ') AS category_names
+        FROM books b
+        LEFT JOIN book_authors ba ON b.id = ba.book_id
+        LEFT JOIN authors a ON ba.author_id = a.id
+        LEFT JOIN book_categories bc ON b.id = bc.book_id
+        LEFT JOIN categories c ON bc.category_id = c.id
+        WHERE 1=1
+        """);
 
         List<Object> params = new ArrayList<>();
 
@@ -139,6 +177,9 @@ public class BookRepository {
         if (onlyAvailable) {
             sql.append("AND b.available_copies > 0 ");
         }
+
+        // GROUP BY måste vara med när vi använder GROUP_CONCAT!
+        sql.append("GROUP BY b.id, b.title, b.isbn, b.year_published, b.total_copies, b.available_copies ");
 
         sql.append(switch (sortBy) {
             case "newest" -> "ORDER BY b.year_published DESC";
@@ -159,6 +200,7 @@ public class BookRepository {
         }
         return books;
     }
+
 
 
 }

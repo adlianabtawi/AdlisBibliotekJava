@@ -176,4 +176,15 @@ public class LoanRepository {
                 rs.getDate("return_date") != null ? rs.getDate("return_date").toLocalDate() : null
         );
     }
+
+    public void extendLoan(int loanId, int extraDays) throws SQLException {
+        String sql = "UPDATE loans SET due_date = DATE_ADD(due_date, INTERVAL ? DAY) WHERE id = ? AND return_date IS NULL";
+        try (PreparedStatement stmt = getConnection().prepareStatement(sql)) {
+            stmt.setInt(1, extraDays);
+            stmt.setInt(2, loanId);
+            stmt.executeUpdate();
+        }
+    }
+
+
 }

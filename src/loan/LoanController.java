@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Scanner;
 import java.time.LocalDate;
 
-public class LoanUI {
+public class LoanController {
 
     private final Scanner scanner;
     private final LoanService loanService;
 
-    public LoanUI(Scanner scanner) {
+    public LoanController(Scanner scanner) {
         this.scanner = scanner;
         this.loanService = new LoanService();
     }
@@ -23,6 +23,7 @@ public class LoanUI {
             System.out.println("2. Visa lån per medlem");
             System.out.println("3. Låna en bok");
             System.out.println("4. Återlämna en bok");
+            System.out.println("5. Förläng ett lån");
             System.out.println("0. Tillbaka");
             System.out.print("Val: ");
 
@@ -33,6 +34,7 @@ public class LoanUI {
                 case "2" -> showLoansByMember();
                 case "3" -> borrowBook();
                 case "4" -> returnBook();
+                case "5" -> extendLoan();
                 case "0" -> running = false;
                 default -> System.out.println("Ogiltigt val.");
             }
@@ -123,4 +125,26 @@ public class LoanUI {
             System.out.println("Databasfel: " + e.getMessage());
         }
     }
+    private void extendLoan() {
+        try {
+            System.out.print("Ange låne-ID: ");
+            int loanId = Integer.parseInt(scanner.nextLine());
+            System.out.print("Antal extra dagar (standard 14): ");
+            String daysInput = scanner.nextLine();
+            int days = daysInput.isBlank() ? 14 : Integer.parseInt(daysInput);
+
+            loanService.extendLoan(loanId, days);
+            System.out.println("Lånet har förlängts med " + days + " dagar!");
+
+        } catch (NumberFormatException e) {
+            System.out.println("Ogiltigt värde.");
+        } catch (LoanNotFoundException e) {
+            System.out.println(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Fel: " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("Databasfel: " + e.getMessage());
+        }
+    }
+
 }

@@ -15,4 +15,5 @@ public class MemberSummaryDTO {
     public String toString() {
         return "[" + id + "] " + name + " – " + email;
     }
+
 }

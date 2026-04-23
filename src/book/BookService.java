@@ -40,5 +40,14 @@ public class BookService {
         return bookRepository.search(title, author, categoryId, onlyAvailable, sortBy);
     }
 
+    public void updateBook(int id, String title, int year, int totalCopies) throws SQLException {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
+        book.setTitle(title);
+        book.setYearPublished(year);
+        book.setTotalCopies(totalCopies);
+        bookRepository.update(book);
+    }
+
 
 }
