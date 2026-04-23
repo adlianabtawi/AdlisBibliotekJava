@@ -54,24 +54,36 @@ public class BookController {
     }
 
     private void addBook() {
-        System.out.print("Titel: ");
-        String title = scanner.nextLine();
-        System.out.print("ISBN: ");
-        String isbn = scanner.nextLine();
-        System.out.print("År: ");
-        int year = Integer.parseInt(scanner.nextLine());
-        System.out.print("Antal exemplar: ");
-        int copies = Integer.parseInt(scanner.nextLine());
-
         try {
-            service.addBook(title, isbn, year, copies);
-            System.out.println("Bok tillagd!");
+            System.out.print("Titel: ");
+            String title = scanner.nextLine();
+            System.out.print("ISBN: ");
+            String isbn = scanner.nextLine();
+
+            System.out.print("Utgivningsår: ");
+            int year = Integer.parseInt(scanner.nextLine());
+
+            System.out.print("Antal exemplar: ");
+            int copies = Integer.parseInt(scanner.nextLine());
+
+            // De nya fälten som krävs för databasen
+            System.out.print("Författar-ID: ");
+            int authorId = Integer.parseInt(scanner.nextLine());
+
+            System.out.print("Kategori-ID: ");
+            int categoryId = Integer.parseInt(scanner.nextLine());
+
+            // Nu skickar vi med ALLA 6 värden till servicen!
+            service.addBook(title, isbn, year, copies, authorId, categoryId);
+            System.out.println("Boken har lagts till i biblioteket!");
+
         } catch (NumberFormatException e) {
-            System.out.println("Ogiltigt värde för år eller antal exemplar.");
+            System.out.println("Ogiltigt värde. År, antal och ID måste vara siffror.");
         } catch (SQLException e) {
             System.out.println("Databasfel: " + e.getMessage());
         }
     }
+
 
     private void deleteBook() {
         System.out.print("Ange bokens id: ");
@@ -134,22 +146,31 @@ public class BookController {
         System.out.print("Ange bokens id: ");
         try {
             int id = Integer.parseInt(scanner.nextLine());
+
+            System.out.println("Tips: Tryck bara 'Enter' på de fält du inte vill ändra.");
+
             System.out.print("Ny titel: ");
             String title = scanner.nextLine();
-            System.out.print("Nytt utgivningsår: ");
-            int year = Integer.parseInt(scanner.nextLine());
-            System.out.print("Nytt antal exemplar: ");
-            int copies = Integer.parseInt(scanner.nextLine());
 
-            service.updateBook(id, title, year, copies);
-            System.out.println("Bok uppdaterad!");
+            System.out.print("Nytt utgivningsår: ");
+            String yearStr = scanner.nextLine();
+
+            System.out.print("Nytt totalt antal exemplar: ");
+            String copiesStr = scanner.nextLine();
+
+            service.updateBook(id, title, yearStr, copiesStr);
+            System.out.println("Boken är nu uppdaterad!");
+
         } catch (NumberFormatException e) {
-            System.out.println("Ogiltigt värde.");
+            System.out.println("Ogiltigt format på siffrorna.");
+        } catch (IllegalArgumentException e) { // Fångar upp vår säkerhetsspärr om utlånade böcker
+            System.out.println("Fel: " + e.getMessage());
         } catch (SQLException e) {
             System.out.println("Databasfel: " + e.getMessage());
         } catch (BookNotFoundException e) {
             System.out.println(e.getMessage());
         }
     }
+
 
 }

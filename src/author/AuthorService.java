@@ -40,19 +40,35 @@ public class AuthorService {
     }
 
     public void updateAuthor(int id, String firstName, String lastName, String nationality,
-                             LocalDate birthDate, String biography, String website) throws SQLException {
-        if (!authorRepository.exists(id)) {
-            throw new AuthorNotFoundException(id);
+                             String dateInput, String biography, String website) throws SQLException {
+
+        // 1. Hämta den nuvarande författaren från databasen för att se vad som fanns innan
+        AuthorDTO current = getAuthorById(id);
+
+        // Eftersom din AuthorDTO förmodligen bara har getFullName(), delar vi upp namnet för säkerhets skull
+        // (Ifall användaren trycker enter och vill behålla gamla namnet)
+        String[] nameParts = current.getFullName().split(" ", 2);
+        String oldFirstName = nameParts[0];
+        String oldLastName = nameParts.length > 1 ? nameParts[1] : "";
+
+        // 2. Smart koll: Är den nya texten tom? Använd i så fall den gamla datan!
+        String finalFirstName = (firstName != null && !firstName.isBlank()) ? firstName.trim() : oldFirstName;
+        String finalLastName = (lastName != null && !lastName.isBlank()) ? lastName.trim() : oldLastName;
+        String finalNationality = (nationality != null && !nationality.isBlank()) ? nationality.trim() : current.getNationality();
+        String finalBiography = (biography != null && !biography.isBlank()) ? biography.trim() : current.getBiography();
+        String finalWebsite = (website != null && !website.isBlank()) ? website.trim() : current.getWebsite();
+
+        // 3. Smart hantering av datumet
+        LocalDate finalDate = current.getBirthDate();
+        if (dateInput != null && !dateInput.isBlank()) {
+            finalDate = LocalDate.parse(dateInput.trim()); // Tolka bara datumet om användaren skrev in ett nytt
         }
-        if (firstName == null || firstName.isBlank()) {
-            throw new IllegalArgumentException("Förnamn får inte vara tomt.");
-        }
-        if (lastName == null || lastName.isBlank()) {
-            throw new IllegalArgumentException("Efternamn får inte vara tomt.");
-        }
-        authorRepository.update(id, firstName.trim(), lastName.trim(), nationality.trim(),
-                birthDate, biography.trim(), website.trim());
+
+        // 4. Skicka de färdiga värdena till Repositoryt
+        authorRepository.update(id, finalFirstName, finalLastName, finalNationality,
+                finalDate, finalBiography, finalWebsite);
     }
+
 
     public void deleteAuthor(int id) throws SQLException {
         if (!authorRepository.exists(id)) {

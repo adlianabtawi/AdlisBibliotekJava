@@ -158,6 +158,8 @@ public class CategoryController {
             System.out.println("Ogiltigt ID.");
         } catch (CategoryNotFoundException e) {
             System.out.println(e.getMessage());
+        } catch (IllegalArgumentException e) { // <-- Denna fångar upp vårt snygga felmeddelande!
+            System.out.println("Fel: " + e.getMessage());
         } catch (SQLException e) {
             System.out.println("Databasfel: " + e.getMessage());
         }

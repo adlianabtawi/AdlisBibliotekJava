@@ -69,4 +69,47 @@ public class LoanService {
         loanRepository.extendLoan(loanId, extraDays);
     }
 
+    public List<String> getMostBorrowedBooks(int limit) throws SQLException {
+        return loanRepository.getMostBorrowedBooks(limit);
+    }
+
+    public List<String> getOverdueLoans() throws SQLException {
+        return loanRepository.getOverdueLoans();
+    }
+
+    public List<String> getMyFines(int memberId) throws SQLException {
+        // 1. Kolla om användaren överhuvudtaget existerar
+        if (!loanRepository.memberExists(memberId)) {
+            throw new IllegalArgumentException("Kunde inte hitta någon låntagare med ID: " + memberId);
+        }
+
+        // 2. Om användaren finns, hämta böterna
+        return loanRepository.getMyFines(memberId);
+    }
+
+    public void quickReturnBook(int bookId) throws SQLException {
+        // Kontrollera att boken överhuvudtaget finns i databasen
+        if (!loanRepository.bookExists(bookId)) {
+            throw new IllegalArgumentException("Bok med ID " + bookId + " finns inte i systemet.");
+        }
+
+        loanRepository.quickReturnBook(bookId);
+    }
+
+    // För Låntagaren
+    public void changeMembershipType(int memberId, String newType) throws SQLException {
+        if (!loanRepository.memberExists(memberId)) {
+            throw new IllegalArgumentException("Kunde inte hitta någon låntagare med ID: " + memberId);
+        }
+        loanRepository.updateMembershipType(memberId, newType);
+    }
+
+
+    public void suspendMember(int memberId) throws SQLException {
+        if (!loanRepository.memberExists(memberId)) {
+            throw new IllegalArgumentException("Kunde inte hitta någon låntagare med ID: " + memberId);
+        }
+        loanRepository.suspendMember(memberId);
+    }
+
 }

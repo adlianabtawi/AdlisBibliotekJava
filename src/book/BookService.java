@@ -25,9 +25,22 @@ public class BookService {
                 .toList();
     }
 
-    public void addBook(String title, String isbn, int year, int copies) throws SQLException {
+    // ==========================================
+    // UPPUDATERAD METOD: Nu sparas författare & kategori!
+    // ==========================================
+    public void addBook(String title, String isbn, int year, int copies, int authorId, int categoryId) throws SQLException {
         Book book = new Book(title, isbn, year, copies, copies);
-        bookRepository.save(book);
+
+        // 1. Spara boken och hämta det nya ID:t som databasen skapade
+        int newBookId = bookRepository.save(book);
+
+        // 2. Om boken sparades korrekt, spara kopplingarna!
+        if (newBookId != -1) {
+            bookRepository.addAuthorToBook(newBookId, authorId);
+            bookRepository.addCategoryToBook(newBookId, categoryId);
+        } else {
+            throw new SQLException("Kunde inte hämta det genererade ID:t för boken.");
+        }
     }
 
     public void deleteBook(int id) throws SQLException {
@@ -40,14 +53,40 @@ public class BookService {
         return bookRepository.search(title, author, categoryId, onlyAvailable, sortBy);
     }
 
-    public void updateBook(int id, String title, int year, int totalCopies) throws SQLException {
+    public void updateBook(int id, String title, String yearStr, String copiesStr) throws SQLException {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
-        book.setTitle(title);
-        book.setYearPublished(year);
-        book.setTotalCopies(totalCopies);
+
+        // 1. Uppdatera titel om den inte är tom
+        if (title != null && !title.isBlank()) {
+            book.setTitle(title);
+        }
+
+        // 2. Uppdatera år om det inte är tomt
+        if (yearStr != null && !yearStr.isBlank()) {
+            book.setYearPublished(Integer.parseInt(yearStr));
+        }
+
+        // 3. Smart uppdatering av antal kopior!
+        if (copiesStr != null && !copiesStr.isBlank()) {
+            int newTotalCopies = Integer.parseInt(copiesStr);
+
+            // Räkna ut hur många böcker som för tillfället är ute hos låntagare
+            int borrowedCopies = book.getTotalCopies() - book.getAvailableCopies();
+
+            // Säkerhetsspärr: Man kan inte ha färre totala böcker än vad som är utlånat
+            if (newTotalCopies < borrowedCopies) {
+                throw new IllegalArgumentException("Kan inte sänka antalet till " + newTotalCopies +
+                        ". Just nu är " + borrowedCopies + " böcker utlånade.");
+            }
+
+            book.setTotalCopies(newTotalCopies);
+            // Sätt tillgängliga böcker = det nya totala - det som är utlånat
+            book.setAvailableCopies(newTotalCopies - borrowedCopies);
+        }
+
+        // 4. Spara till databasen
         bookRepository.update(book);
     }
-
 
 }

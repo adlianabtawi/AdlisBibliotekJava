@@ -86,4 +86,7 @@ public class MemberRepository {
                 rs.getString("phone")
         );
     }
+
+
+
 }

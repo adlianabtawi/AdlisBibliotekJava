@@ -136,22 +136,35 @@ public class AuthorController {
         try {
             System.out.print("Ange författar-ID att uppdatera: ");
             int id = Integer.parseInt(scanner.nextLine());
+
+            // Hämta befintlig data för att visa den
+            AuthorDTO current = authorService.getAuthorById(id);
+
+            System.out.println("\nTips: Tryck 'Enter' om du vill behålla det nuvarande värdet.");
+            System.out.println("Nuvarande namn: " + current.getFullName());
+
             System.out.print("Nytt förnamn: ");
             String firstName = scanner.nextLine();
+
             System.out.print("Nytt efternamn: ");
             String lastName = scanner.nextLine();
-            System.out.print("Ny nationalitet: ");
+
+            System.out.printf("Ny nationalitet [%s]: ", current.getNationality() != null ? current.getNationality() : "Ingen");
             String nationality = scanner.nextLine();
-            System.out.print("Nytt födelsedatum (ÅÅÅÅ-MM-DD, lämna tomt om okänt): ");
+
+            System.out.printf("Nytt födelsedatum [%s] (ÅÅÅÅ-MM-DD): ", current.getBirthDate() != null ? current.getBirthDate() : "Okänt");
             String dateInput = scanner.nextLine();
-            LocalDate birthDate = dateInput.isBlank() ? null : LocalDate.parse(dateInput);
-            System.out.print("Ny biografi: ");
+
+            System.out.printf("Ny biografi [%s]: ", current.getBiography() != null ? current.getBiography() : "Ingen");
             String biography = scanner.nextLine();
-            System.out.print("Ny webbplats: ");
+
+            System.out.printf("Ny webbplats [%s]: ", current.getWebsite() != null ? current.getWebsite() : "Ingen");
             String website = scanner.nextLine();
 
-            authorService.updateAuthor(id, firstName, lastName, nationality, birthDate, biography, website);
+            // Skicka allt som strängar till servicen
+            authorService.updateAuthor(id, firstName, lastName, nationality, dateInput, biography, website);
             System.out.println("Författaren har uppdaterats!");
+
         } catch (DateTimeParseException e) {
             System.out.println("Ogiltigt datumformat. Använd ÅÅÅÅ-MM-DD.");
         } catch (NumberFormatException e) {
@@ -162,6 +175,7 @@ public class AuthorController {
             System.out.println("Databasfel: " + e.getMessage());
         }
     }
+
 
     private void deleteAuthor() {
         try {

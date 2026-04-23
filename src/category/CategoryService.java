@@ -54,8 +54,19 @@ public class CategoryService {
         if (!categoryRepository.exists(categoryId)) {
             throw new CategoryNotFoundException(categoryId);
         }
-        categoryRepository.addCategoryToBook(bookId, categoryId);
+
+        try {
+            categoryRepository.addCategoryToBook(bookId, categoryId);
+        } catch (SQLException e) {
+            // Om databasen klagar på främmande nyckel (Foreign Key), betyder det att bok-ID:t inte finns!
+            if (e.getMessage().contains("foreign key constraint") || e.getMessage().contains("FOREIGN KEY")) {
+                throw new IllegalArgumentException("Kunde inte hitta någon bok med ID: " + bookId);
+            }
+            // Om det är något annat databasfel, låt det kasta vidare som vanligt
+            throw e;
+        }
     }
+
     public void removeCategoryFromBook(int bookId, int categoryId) throws SQLException {
         if (!categoryRepository.exists(categoryId)) {
             throw new CategoryNotFoundException(categoryId);

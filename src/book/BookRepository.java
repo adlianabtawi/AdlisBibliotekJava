@@ -15,22 +15,21 @@ public class BookRepository {
         SELECT 
             books.id,
             books.title,
-                books.isbn,             -- Lägg till!
-                books.year_published,   -- Lägg till!
-                books.total_copies,     -- Lägg till!
+            books.isbn,
+            books.year_published,
+            books.total_copies,
             books.available_copies,
             GROUP_CONCAT(DISTINCT CONCAT(authors.first_name, ' ', authors.last_name) 
                 SEPARATOR ', ') AS author_names,
             GROUP_CONCAT(DISTINCT categories.name 
                 SEPARATOR ', ') AS category_names
         FROM books
-        JOIN book_authors ON books.id = book_authors.book_id
-        JOIN authors ON book_authors.author_id = authors.id
+        LEFT JOIN book_authors ON books.id = book_authors.book_id
+        LEFT JOIN authors ON book_authors.author_id = authors.id
         LEFT JOIN book_categories ON books.id = book_categories.book_id
         LEFT JOIN categories ON book_categories.category_id = categories.id
-                     GROUP BY books.id, books.title, books.isbn, books.year_published, books.total_copies, books.available_copies
+        GROUP BY books.id, books.title, books.isbn, books.year_published, books.total_copies, books.available_copies
         """;
-
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
@@ -43,10 +42,20 @@ public class BookRepository {
         return books;
     }
 
-
-
     public Optional<Book> findById(int id) throws SQLException {
-        String sql = "SELECT * FROM books WHERE id = ?";
+        String sql = """
+        SELECT 
+            books.id, books.title, books.isbn, books.year_published, books.total_copies, books.available_copies,
+            GROUP_CONCAT(DISTINCT CONCAT(authors.first_name, ' ', authors.last_name) SEPARATOR ', ') AS author_names,
+            GROUP_CONCAT(DISTINCT categories.name SEPARATOR ', ') AS category_names
+        FROM books
+        LEFT JOIN book_authors ON books.id = book_authors.book_id
+        LEFT JOIN authors ON book_authors.author_id = authors.id
+        LEFT JOIN book_categories ON books.id = book_categories.book_id
+        LEFT JOIN categories ON book_categories.category_id = categories.id
+        WHERE books.id = ?
+        GROUP BY books.id, books.title, books.isbn, books.year_published, books.total_copies, books.available_copies
+        """;
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -57,23 +66,6 @@ public class BookRepository {
             if (rs.next()) return Optional.of(mapRow(rs));
         }
         return Optional.empty();
-    }
-
-    public List<Book> findByTitle(String title) throws SQLException {
-        List<Book> books = new ArrayList<>();
-        String sql = "SELECT * FROM books WHERE title LIKE ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, "%" + title + "%");
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                books.add(mapRow(rs));
-            }
-        }
-        return books;
     }
 
     public int save(Book book) throws SQLException {
@@ -95,6 +87,27 @@ public class BookRepository {
         return -1;
     }
 
+    // NYA METODER FÖR ATT KOPPLA BOKEN TILL FÖRFATTARE OCH KATEGORI
+    public void addAuthorToBook(int bookId, int authorId) throws SQLException {
+        String sql = "INSERT INTO book_authors (book_id, author_id) VALUES (?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bookId);
+            stmt.setInt(2, authorId);
+            stmt.executeUpdate();
+        }
+    }
+
+    public void addCategoryToBook(int bookId, int categoryId) throws SQLException {
+        String sql = "INSERT INTO book_categories (book_id, category_id) VALUES (?, ?)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, bookId);
+            stmt.setInt(2, categoryId);
+            stmt.executeUpdate();
+        }
+    }
+
     public void update(Book book) throws SQLException {
         String sql = "UPDATE books SET title=?, year_published=?, total_copies=?, available_copies=? WHERE id=?";
 
@@ -112,10 +125,8 @@ public class BookRepository {
 
     public void delete(int id) throws SQLException {
         String sql = "DELETE FROM books WHERE id = ?";
-
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setInt(1, id);
             stmt.executeUpdate();
         }
@@ -130,28 +141,19 @@ public class BookRepository {
                 rs.getInt("total_copies"),
                 rs.getInt("available_copies")
         );
-        book.setAuthorName(rs.getString("author_names"));     // ✅ Inte first_name/last_name!
-        book.setCategoryName(rs.getString("category_names")); // ✅
+        book.setAuthorName(rs.getString("author_names"));
+        book.setCategoryName(rs.getString("category_names"));
         return book;
     }
-
-
 
     public List<Book> search(String title, String author, Integer categoryId, boolean onlyAvailable, String sortBy) throws SQLException {
         List<Book> books = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder("""
         SELECT 
-            b.id,
-            b.title,
-            b.isbn,
-            b.year_published,
-            b.total_copies,
-            b.available_copies,
-            GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) 
-                SEPARATOR ', ') AS author_names,
-            GROUP_CONCAT(DISTINCT c.name 
-                SEPARATOR ', ') AS category_names
+            b.id, b.title, b.isbn, b.year_published, b.total_copies, b.available_copies,
+            GROUP_CONCAT(DISTINCT CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', ') AS author_names,
+            GROUP_CONCAT(DISTINCT c.name SEPARATOR ', ') AS category_names
         FROM books b
         LEFT JOIN book_authors ba ON b.id = ba.book_id
         LEFT JOIN authors a ON ba.author_id = a.id
@@ -178,7 +180,6 @@ public class BookRepository {
             sql.append("AND b.available_copies > 0 ");
         }
 
-        // GROUP BY måste vara med när vi använder GROUP_CONCAT!
         sql.append("GROUP BY b.id, b.title, b.isbn, b.year_published, b.total_copies, b.available_copies ");
 
         sql.append(switch (sortBy) {
@@ -200,7 +201,33 @@ public class BookRepository {
         }
         return books;
     }
+    public List<Book> findByTitle(String title) throws SQLException {
+        List<Book> books = new ArrayList<>();
+        String sql = """
+        SELECT 
+            books.id, books.title, books.isbn, books.year_published, books.total_copies, books.available_copies,
+            GROUP_CONCAT(DISTINCT CONCAT(authors.first_name, ' ', authors.last_name) SEPARATOR ', ') AS author_names,
+            GROUP_CONCAT(DISTINCT categories.name SEPARATOR ', ') AS category_names
+        FROM books
+        LEFT JOIN book_authors ON books.id = book_authors.book_id
+        LEFT JOIN authors ON book_authors.author_id = authors.id
+        LEFT JOIN book_categories ON books.id = book_categories.book_id
+        LEFT JOIN categories ON book_categories.category_id = categories.id
+        WHERE books.title LIKE ?
+        GROUP BY books.id, books.title, books.isbn, books.year_published, books.total_copies, books.available_copies
+        """;
 
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            stmt.setString(1, "%" + title + "%");
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                books.add(mapRow(rs));
+            }
+        }
+        return books;
+    }
 
 }
