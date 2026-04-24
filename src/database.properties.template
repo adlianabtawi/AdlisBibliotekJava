@@ -1,0 +1,3 @@
+db.url=jdbc:mysql://localhost:3306/adlisbibliotek
+db.user=ditt_användarnamn
+db.password=ditt_lösenord
