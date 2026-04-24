@@ -24,6 +24,7 @@ public class CategoryController {
             System.out.println("4. Uppdatera kategori");
             System.out.println("5. Ta bort kategori");
             System.out.println("6. Lägg till bok i kategori");
+            System.out.println("7. Ta bort en kategori från en bok");
             System.out.println("0. Tillbaka");
             System.out.print("Val: ");
 
@@ -36,6 +37,7 @@ public class CategoryController {
                 case "4" -> updateCategory();
                 case "5" -> deleteCategory();
                 case "6" -> addBookToCategory();
+                case "7" -> removeCategoryFromBook(); // Byt X mot din siffra
                 case "0" -> running = false;
                 default  -> System.out.println("Ogiltigt val.");
             }
@@ -137,7 +139,7 @@ public class CategoryController {
             System.out.print("Ange bok-ID: ");
             int bookId = Integer.parseInt(scanner.nextLine());
 
-            // Visa alla kategorier så bibliotekarie kan välja
+            // Visa alla kategorier
             List<CategoryDTO> categories = categoryService.getAllCategories();
             if (categories.isEmpty()) {
                 System.out.println("Inga kategorier hittades.");
@@ -164,5 +166,37 @@ public class CategoryController {
             System.out.println("Databasfel: " + e.getMessage());
         }
     }
+
+    private void removeCategoryFromBook() {
+        System.out.println("\n--- ✂️ Ta bort kategori från bok ---");
+
+        try {
+            System.out.print("Ange Bok-ID som du vill ändra på: ");
+            int bookId = Integer.parseInt(scanner.nextLine());
+
+            // Skriv ut kategorierna så användaren slipper gissa!
+            System.out.println("\n-- Tillgängliga kategorier --");
+            List<CategoryDTO> categories = categoryService.getAllCategories();
+            for (CategoryDTO c : categories) {
+                System.out.println(c.getId() + ". " + c.getName());
+            }
+            System.out.println("-----------------------------");
+
+            System.out.print("Ange Kategori-ID som ska tas bort från boken: ");
+            int categoryId = Integer.parseInt(scanner.nextLine());
+
+            categoryService.removeCategoryFromBook(bookId, categoryId);
+
+            System.out.println("✅ Succé! Kategorin är nu borttagen från boken.");
+
+        } catch (NumberFormatException e) {
+            System.out.println("⚠️ Ogiltigt ID. Ange endast siffror.");
+        } catch (CategoryNotFoundException e) {
+            System.out.println("⚠️ " + e.getMessage());
+        } catch (SQLException e) {
+            System.out.println("🔴 Databasfel: " + e.getMessage());
+        }
+    }
+
 
 }

@@ -41,18 +41,25 @@ public class MemberRepository {
     }
 
     public void save(Member member) throws SQLException {
-        String sql = "INSERT INTO members (first_name, last_name, email, membership_date, membership_type, status) VALUES (?, ?, ?, ?, ?, ?)";
+        // Lade till 'phone' i kolumnerna och ett extra frågetecken (?) i VALUES
+        String sql = "INSERT INTO members (first_name, last_name, email, phone, membership_date, membership_type, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, member.getFirstName());
             stmt.setString(2, member.getLastName());
             stmt.setString(3, member.getEmail());
-            stmt.setDate(4, java.sql.Date.valueOf(java.time.LocalDate.now()));
-            stmt.setString(5, "standard");
-            stmt.setString(6, "active");
+            stmt.setString(4, member.getPhone()); // <-- HÄR ÄR DEN SAKNADE RADEN!
+
+            stmt.setDate(5, java.sql.Date.valueOf(java.time.LocalDate.now())); // Blev nr 5
+            stmt.setString(6, "standard"); // Blev nr 6
+            stmt.setString(7, "active"); // Blev nr 7
+
             stmt.executeUpdate();
         }
     }
+
     public void update(Member member) throws SQLException {
         String sql = "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();

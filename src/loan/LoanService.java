@@ -3,6 +3,7 @@ package loan;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
+import book.BookNotAvailableException;
 
 public class LoanService {
 
@@ -28,7 +29,7 @@ public class LoanService {
         // Kontrollera att boken har lediga exemplar
         int availableCopies = loanRepository.getAvailableCopies(bookId);
         if (availableCopies <= 0) {
-            throw new IllegalStateException("Boken har inga lediga exemplar just nu.");
+            throw new BookNotAvailableException(bookId); // <--- HÄR ANVÄNDER VI DEN!
         }
 
         // Kontrollera att medlemmen finns

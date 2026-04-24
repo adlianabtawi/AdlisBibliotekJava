@@ -42,16 +42,15 @@ public class AuthorService {
     public void updateAuthor(int id, String firstName, String lastName, String nationality,
                              String dateInput, String biography, String website) throws SQLException {
 
-        // 1. Hämta den nuvarande författaren från databasen för att se vad som fanns innan
+        // 1. Hämta den nuvarande författaren från databasen för att se vad som finns nu
         AuthorDTO current = getAuthorById(id);
 
-        // Eftersom din AuthorDTO förmodligen bara har getFullName(), delar vi upp namnet för säkerhets skull
-        // (Ifall användaren trycker enter och vill behålla gamla namnet)
+
         String[] nameParts = current.getFullName().split(" ", 2);
         String oldFirstName = nameParts[0];
         String oldLastName = nameParts.length > 1 ? nameParts[1] : "";
 
-        // 2. Smart koll: Är den nya texten tom? Använd i så fall den gamla datan!
+        // 2. Är den nya texten tom? Använd i så fall den gamla datan!
         String finalFirstName = (firstName != null && !firstName.isBlank()) ? firstName.trim() : oldFirstName;
         String finalLastName = (lastName != null && !lastName.isBlank()) ? lastName.trim() : oldLastName;
         String finalNationality = (nationality != null && !nationality.isBlank()) ? nationality.trim() : current.getNationality();

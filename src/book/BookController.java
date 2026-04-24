@@ -23,6 +23,7 @@ public class BookController {
             System.out.println("3. Ta bort bok");
             System.out.println("4. Sök böcker");
             System.out.println("5. Redigera bok");
+            System.out.println("6. Visa detaljer för en specifik bok");
             System.out.println("0. Tillbaka");
             System.out.print("Val: ");
 
@@ -34,6 +35,7 @@ public class BookController {
                 case "3" -> deleteBook();
                 case "4" -> searchBooks();
                 case "5" -> editBook();
+                case "6" -> showBookDetails();
                 case "0" -> running = false;
                 default -> System.out.println("Ogiltigt val.");
             }
@@ -172,5 +174,27 @@ public class BookController {
         }
     }
 
+    private void showBookDetails() {
+        System.out.print("Ange bokens id för att se detaljer: ");
+        try {
+            int id = Integer.parseInt(scanner.nextLine());
+
+            BookDetailDTO book = service.getBookById(id);
+
+            System.out.println("\n--- 📖 BOKDETALJER ---");
+            // Eftersom BookDetailDTO oftast är en "record", har den en inbyggd snygg utskrift.
+            // Om du vill kan du formatera detta ännu snyggare, t.ex:
+            // System.out.println("Titel: " + book.title()); etc.
+            System.out.println(book.toString());
+            System.out.println("-----------------------");
+
+        } catch (NumberFormatException e) {
+            System.out.println("Ogiltigt id. Du måste ange en siffra.");
+        } catch (BookNotFoundException e) {
+            System.out.println("⚠️ " + e.getMessage()); // Fångar felet om boken inte finns
+        } catch (SQLException e) {
+            System.out.println("Databasfel: " + e.getMessage());
+        }
+    }
 
 }

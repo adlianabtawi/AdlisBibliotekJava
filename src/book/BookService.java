@@ -19,15 +19,7 @@ public class BookService {
         return BookMapper.toDetailDTO(book);
     }
 
-    public List<BookSummaryDTO> searchByTitle(String title) throws SQLException {
-        return bookRepository.findByTitle(title).stream()
-                .map(BookMapper::toSummaryDTO)
-                .toList();
-    }
 
-    // ==========================================
-    // UPPUDATERAD METOD: Nu sparas författare & kategori!
-    // ==========================================
     public void addBook(String title, String isbn, int year, int copies, int authorId, int categoryId) throws SQLException {
         Book book = new Book(title, isbn, year, copies, copies);
 
