@@ -1,11 +1,3 @@
-Självklart! Helt rätt, det var en miss av mig. Författarna (`Author`) är ju en superviktig del, speciellt eftersom du hanterar kopplingar mellan böcker och författare!
-
-Här är den uppdaterade och helt kompletta versionen där `author` finns med, och där jag även lade till en liten snygg blänkare om hur du hanterar Many-to-Many-relationer (vilket återigen är ett stort VG-kriterie att visa att man förstår!).
-
-Kopiera den här versionen istället:
-
-***
-
 # 📚 Adlis Bibliotekssystem
 Ett backend-system för bibliotekshantering utvecklat i Java. Projektet är byggt med en strikt **trelagersarkitektur** och använder **JDBC** för kommunikation med en MySQL-databas. Projektet är en del av kursen *Objektorienterad analys och design*.
 
